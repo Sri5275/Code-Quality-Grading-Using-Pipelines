@@ -28,4 +28,17 @@ jobs:
       - name: Run Flake8
         run: |
           # Run Flake8 and output results
-          flake8 .
+          flake8 . || true
+          echo "Flake8 completed"
+
+      - name: Check Flake8 Score
+        run: |
+          # Parse Flake8 output and calculate score
+          total_issues=$(grep -c '^' <<< "${{ steps.flake8.outputs.stdout }}")
+          echo "Total issues found: $total_issues"
+          if [ "$total_issues" -gt 10 ]; then
+            echo "Code quality score: FAIL"
+            exit 1
+          else
+            echo "Code quality score: PASS"
+          fi

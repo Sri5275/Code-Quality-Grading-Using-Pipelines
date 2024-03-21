@@ -45,7 +45,7 @@ jobs:
           fi
           flake8_score=$((100 - flake8_issues * 10))
           echo "Flake8 score: $flake8_score"
-          if [ $flake8_score -lt 70 ]; then
+          if [ $flake8_score -lt 100 ]; then
             echo "Code quality score: FAIL"
             exit 1
           else

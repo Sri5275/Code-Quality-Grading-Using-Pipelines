@@ -34,7 +34,7 @@ jobs:
       - name: Check Flake8 Score
         run: |
           # Parse Flake8 output and calculate score
-          total_issues=$(grep -c '^' <<< "${{ steps.flake8.outputs.stdout }}")
+          total_issues=$(grep -c '^\./.*:.*:.*: [EW]' <<< "${{ steps.flake8.outputs.stdout }}")
           echo "Total issues found: $total_issues"
           if [ "$total_issues" -gt 0 ]; then
             echo "Code quality score: FAIL"

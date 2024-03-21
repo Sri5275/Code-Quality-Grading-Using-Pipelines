@@ -29,21 +29,28 @@ jobs:
 
       - name: Run Flake8
         id: flake8
-        run: flake8 . || true
+        run: |
+          flake8 . > flake8_results.txt || true
 
       - name: Run Pylint
         id: pylint
         run: |
-          pylint . || true
+          pylint . > pylint_results.txt || true
 
-      - name: Display Code Quality Score
+      - name: Parse Flake8 output and calculate score
         run: |
-          flake8_score=$(echo "${{ steps.flake8.outputs.stdout }}" | grep -c '^')
-          pylint_score=$(echo "${{ steps.pylint.outputs.stdout }}" | grep -c 'Your code has been rated at')
-          total_score=$((flake8_score + pylint_score))
-          echo "Code quality score: $total_score"
-          if [ "$total_score" -gt 0 ]; then
-            echo "Errors found in the code."
+          flake8_issues=$(grep -c '^[^:]*:.*:' flake8_results.txt)
+          flake8_score=$((100 - flake8_issues * 10))
+          echo "Flake8 score: $flake8_score"
+          if [ $flake8_score -lt 70 ]; then
+            echo "Code quality score: FAIL"
+            exit 1
           else
-            echo "No errors found in the code."
+            echo "Code quality score: PASS"
           fi
+
+      - name: Display Flake8 issues
+        if: always()
+        run: |
+          echo "Flake8 issues found:"
+          cat flake8_results.txt

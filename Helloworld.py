@@ -1,5 +1,5 @@
 def compute_prefix(pattern):
-    """Compute the prefix function for the given pattern."""
+    """Compute the prefix ."""
     m = len(pattern)
     prefix = [0] * m
     length = 0
@@ -17,8 +17,9 @@ def compute_prefix(pattern):
                 i += 1
     return prefix
 
+
 def kmp_search(text, pattern):
-    """Search for occurrences of the pattern in the text using the KMP algorithm."""
+    """Search for occurrences ."""
     n = len(text)
     m = len(pattern)
     prefix = compute_prefix(pattern)
@@ -40,6 +41,7 @@ def kmp_search(text, pattern):
             else:
                 i += 1
     return occurrences
+
 
 # Example usage:
 text = "ABABDABACDABABCABAB"

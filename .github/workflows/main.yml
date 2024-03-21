@@ -39,7 +39,10 @@ jobs:
 
       - name: Parse Flake8 output and calculate score
         run: |
-          flake8_issues=$(grep -c '^[^:]*:.*:' flake8_results.txt)
+          flake8_issues=0
+          if grep -q '^[^:]*:.*:' flake8_results.txt; then
+            flake8_issues=$(grep -c '^[^:]*:.*:' flake8_results.txt)
+          fi
           flake8_score=$((100 - flake8_issues * 10))
           echo "Flake8 score: $flake8_score"
           if [ $flake8_score -lt 70 ]; then
@@ -48,6 +51,7 @@ jobs:
           else
             echo "Code quality score: PASS"
           fi
+
 
       - name: Display Flake8 issues
         if: always()

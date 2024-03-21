@@ -31,14 +31,30 @@ jobs:
           flake8 . || true
           echo "Flake8 completed"
 
+      - name: Run Flake8 and display issues
+        id: flake8
+        run: |
+          # Run Flake8 and output results
+          flake8 . || true
+          echo "::group::Flake8 Issues"
+          flake8 . | tee flake8_report.txt  # Save issues to a file for reference
+          echo "::endgroup::"
+          echo "Flake8 completed"
+
       - name: Check Flake8 Score
         run: |
           # Parse Flake8 output and calculate score
           total_issues=$(grep -c '^' <<< "${{ steps.flake8.outputs.stdout }}")
           echo "Total issues found: $total_issues"
+          
+          # Adjust conditions and thresholds here
           if [ "$total_issues" -gt 10 ]; then
             echo "Code quality score: FAIL"
             exit 1
           else
             echo "Code quality score: PASS"
           fi
+
+      - name: Display Flake8 issues in workflow log
+        if: failure()  # Display issues only if the workflow fails
+        run: cat flake8_report.txt  # Display issues captured in the report file

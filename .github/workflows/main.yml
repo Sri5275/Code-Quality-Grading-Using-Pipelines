@@ -23,32 +23,34 @@ jobs:
           python-version: 3.x
 
       - name: Check if Python files exist
+        id: check_python_files
         run: |
-          if ! find . -name "*.py" -print -quit | grep -q .; then
-            echo "No Python files found, skipping Python inspection."
-            touch python_inspection_skipped
+          if find . -name "*.py" -print -quit | grep -q .; then
+            echo "::set-output name=python_files_exist::true"
+          else
+            echo "::set-output name=python_files_exist::false"
           fi
 
       - name: Install dependencies for Python
-        if: success() && -f python_inspection_skipped
+        if: steps.check_python_files.outputs.python_files_exist == 'true'
         run: |
           pip install flake8
           pip install pylint
 
       - name: Run Flake8
-        if: success() && -f python_inspection_skipped
+        if: steps.check_python_files.outputs.python_files_exist == 'true'
         id: flake8
         run: |
           flake8 . > flake8_results.txt || true
 
       - name: Run Pylint
-        if: success() && -f python_inspection_skipped
+        if: steps.check_python_files.outputs.python_files_exist == 'true'
         id: pylint
         run: |
           pylint . > pylint_results.txt || true
 
       - name: Parse Flake8 output and calculate score
-        if: success() && -f python_inspection_skipped
+        if: steps.check_python_files.outputs.python_files_exist == 'true'
         run: |
           flake8_issues=0
           if grep -q '^[^:]*:.*:' flake8_results.txt; then
@@ -64,38 +66,40 @@ jobs:
           fi
 
       - name: Display Flake8 issues
-        if: success() && -f python_inspection_skipped
+        if: steps.check_python_files.outputs.python_files_exist == 'true'
         run: |
           echo "Flake8 issues found:"
           cat flake8_results.txt
 
       - name: Check if .NET files exist
+        id: check_dotnet_files
         run: |
-          if ! find . -name "*.csproj" -print -quit | grep -q .; then
-            echo "No .NET files found, skipping .NET inspection."
-            touch dotnet_inspection_skipped
+          if find . -name "*.csproj" -print -quit | grep -q .; then
+            echo "::set-output name=dotnet_files_exist::true"
+          else
+            echo "::set-output name=dotnet_files_exist::false"
           fi
 
       - name: Setup .NET Core SDK
-        if: success() && -f dotnet_inspection_skipped
+        if: steps.check_dotnet_files.outputs.dotnet_files_exist == 'true'
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '3.1.x' # Change this to match your project's SDK version
 
       - name: Restore dependencies for .NET
-        if: success() && -f dotnet_inspection_skipped
+        if: steps.check_dotnet_files.outputs.dotnet_files_exist == 'true'
         run: dotnet restore
 
       - name: Analyze code with StyleCop
-        if: success() && -f dotnet_inspection_skipped
+        if: steps.check_dotnet_files.outputs.dotnet_files_exist == 'true'
         run: dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
 
       - name: Analyze code with Roslyn Analyzers
-        if: success() && -f dotnet_inspection_skipped
+        if: steps.check_dotnet_files.outputs.dotnet_files_exist == 'true'
         run: dotnet build /p:ReportAnalyzer=true /p:AnalyzerReportOutputDirectory=roslyn_results
 
       - name: Parse StyleCop output and calculate score
-        if: success() && -f dotnet_inspection_skipped
+        if: steps.check_dotnet_files.outputs.dotnet_files_exist == 'true'
         run: |
           stylecop_issues=0
           if grep -q 'warning' stylecop_results.txt; then
@@ -111,7 +115,7 @@ jobs:
           fi
 
       - name: Display StyleCop issues
-        if: success() && -f dotnet_inspection_skipped
+        if: steps.check_dotnet_files.outputs.dotnet_files_exist == 'true'
         run: |
           echo "StyleCop issues found:"
           cat stylecop_results.txt

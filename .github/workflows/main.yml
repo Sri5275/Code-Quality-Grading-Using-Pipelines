@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: 3.x
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           pip install flake8
           pip install pylint
@@ -52,9 +52,43 @@ jobs:
             echo "Code quality score: PASS"
           fi
 
-
       - name: Display Flake8 issues
         if: always()
         run: |
           echo "Flake8 issues found:"
           cat flake8_results.txt
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x' # Change this to match your project's SDK version
+
+      - name: Restore .NET dependencies
+        run: dotnet restore
+
+      - name: Analyze code with StyleCop
+        run: dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
+
+      - name: Analyze code with Roslyn Analyzers
+        run: dotnet build /p:ReportAnalyzer=true /p:AnalyzerReportOutputDirectory=roslyn_results
+
+      - name: Parse StyleCop output and calculate score
+        run: |
+          stylecop_issues=0
+          if grep -q 'warning' stylecop_results.txt; then
+            stylecop_issues=$(grep -c 'warning' stylecop_results.txt)
+          fi
+          stylecop_score=$((100 - stylecop_issues * 10))
+          echo "StyleCop score: $stylecop_score"
+          if [ $stylecop_score -lt 100 ]; then
+            echo "Code quality score: FAIL"
+            exit 1
+          else
+            echo "Code quality score: PASS"
+          fi
+
+      - name: Display StyleCop issues
+        if: always()
+        run: |
+          echo "StyleCop issues found:"
+          cat stylecop_results.txt

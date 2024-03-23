@@ -1,0 +1,15 @@
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\bin\Debug\net8.0\SQLRepository.deps.json
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\bin\Debug\net8.0\SQLRepository.dll
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\bin\Debug\net8.0\SQLRepository.pdb
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\obj\Debug\net8.0\SQLRepository.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\obj\Debug\net8.0\SQLRepository.AssemblyInfoInputs.cache
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\obj\Debug\net8.0\SQLRepository.AssemblyInfo.cs
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\obj\Debug\net8.0\SQLRepository.csproj.CoreCompileInputs.cache
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\obj\Debug\net8.0\SQLRepository.dll
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\obj\Debug\net8.0\refint\SQLRepository.dll
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\obj\Debug\net8.0\SQLRepository.pdb
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\obj\Debug\net8.0\ref\SQLRepository.dll
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\obj\Debug\net8.0\SQLRepository.csproj.AssemblyReference.cache
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\bin\Debug\net8.0\Common.dll
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\bin\Debug\net8.0\Common.pdb
+C:\Users\SRI\Desktop\VStudioC#\SQL Repository\obj\Debug\net8.0\SQLRepository.csproj.CopyComplete

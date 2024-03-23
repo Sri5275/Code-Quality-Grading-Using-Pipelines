@@ -70,22 +70,28 @@ jobs:
         run: |
           echo "Flake8 issues found:"
           cat flake8_results.txt
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
             dotnet-version: 8.0.x
+
       - name: Clean
         run: |
           dotnet clean && dotnet nuget locals all --clear
+
       - name: Restore dependencies
         run: |
-           dotnet restore
+          dotnet restore
+
       - name: Build
         run: |
-           dotnet build --no-restore
+          dotnet build --no-restore
+
       - name: Test
         run: |
-           dotnet test --no-build --verbosity normal
+          dotnet test --no-build --verbosity normal
+
       - name: Check if .NET files exist
         id: check_dotnet_files
         run: |
@@ -99,46 +105,53 @@ jobs:
         if: env.dotnet_files_exist == 'true'
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x' # Change this to match your project's SDK version
+          dotnet-version: '8.0.x' # Change this to match your project's SDK version
 
       - name: Restore dependencies for .NET
         if: env.dotnet_files_exist == 'true'
         run: |
          dotnet restore
         
-      - name: Analyze code with StyleCop
-        if: env.dotnet_files_exist == 'true'
-        run: |
-          dotnet tool install -g StyleCop.Analyzers.Tool && dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
-
-      - name: Analyze code with StyleCop
-        if: env.dotnet_files_exist == 'true'
-        run: |
-          dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
-
       - name: Analyze code with Roslyn Analyzers
         if: env.dotnet_files_exist == 'true'
         run: |
          dotnet build /p:ReportAnalyzer=true /p:AnalyzerReportOutputDirectory=roslyn_results
 
-      - name: Parse StyleCop output and calculate score
+      - name: Parse Roslyn Analyzers output and calculate score
         if: env.dotnet_files_exist == 'true'
         run: |
-          stylecop_issues=0
-          if grep -q 'warning' stylecop_results.txt; then
-            stylecop_issues=$(grep -c 'warning' stylecop_results.txt)
-          fi
-          stylecop_score=$((100 - stylecop_issues * 10))
-          echo "StyleCop score: $stylecop_score"
-          if [ $stylecop_score -lt 100 ]; then
-            echo "Code quality score: FAIL"
-            exit 1
-          else
-            echo "Code quality score: PASS"
-          fi
+             roslyn_results=$(cat roslyn_results/report.json)
+             # Count the number of issues reported
+            
+             total_issues=$(echo "$roslyn_results" | jq '. | length')
+             
+             # Calculate the score based on the number of issues
+             roslyn_score=$((100 - total_issues * 10))
+            
+              # Output the score
+              echo "Roslyn Analyzers score: $roslyn_score"
+          
+              # Check if the score is below 100 and fail the job if necessary
+              if [ $roslyn_score -lt 100 ]; then
+                echo "Code quality score: FAIL"
+                exit 1
+              else
+                echo "Code quality score: PASS"
+              fi
 
-      - name: Display StyleCop issues
+
+      - name: Display Roslyn Analyzers issues
         if: env.dotnet_files_exist == 'true'
         run: |
-          echo "StyleCop issues found:"
-          cat stylecop_results.txt
+          roslyn_results=$(cat roslyn_results/report.json)
+          # Loop through each issue and display its details
+          echo "Roslyn Analyzers issues found:"
+          for issue in $(echo "$roslyn_results" | jq -r '.[]'); do
+            id=$(echo "$issue" | jq -r '.id')
+            severity=$(echo "$issue" | jq -r '.severity')
+            message=$(echo "$issue" | jq -r '.message')
+            file=$(echo "$issue" | jq -r '.file')
+            line=$(echo "$issue" | jq -r '.line')
+            column=$(echo "$issue" | jq -r '.column')
+            echo "ID: $id, Severity: $severity, Message: $message, File: $file, Line: $line, Column: $column"
+          done

@@ -88,23 +88,23 @@ jobs:
 
       - name: Restore dependencies for .NET
         if: env.dotnet_files_exist == 'true'
-        run: dotnet restore
-      - name: Install and Run StyleCop.Analyzers
+        run: |
+         dotnet restore
+        
+      - name: Analyze code with StyleCop
         if: env.dotnet_files_exist == 'true'
-        run: | 
-          dotnet tool install -g dotnet-stylecop && dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
+        run: |
+          dotnet tool install -g StyleCop.Analyzers.Tool && dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
 
       - name: Analyze code with StyleCop
         if: env.dotnet_files_exist == 'true'
-        run: dotnet tool install -g StyleCop.Analyzers.Tool && dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
-
-      - name: Analyze code with StyleCop
-        if: env.dotnet_files_exist == 'true'
-        run: dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
+        run: |
+          dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
 
       - name: Analyze code with Roslyn Analyzers
         if: env.dotnet_files_exist == 'true'
-        run: dotnet build /p:ReportAnalyzer=true /p:AnalyzerReportOutputDirectory=roslyn_results
+        run: |
+         dotnet build /p:ReportAnalyzer=true /p:AnalyzerReportOutputDirectory=roslyn_results
 
       - name: Parse StyleCop output and calculate score
         if: env.dotnet_files_exist == 'true'

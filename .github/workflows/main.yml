@@ -17,11 +17,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-
       - name: Check if Python files exist
         id: check_python_files
         run: |
@@ -119,3 +114,52 @@ jobs:
         run: |
           echo "StyleCop issues found:"
           cat stylecop_results.txt
+
+      - name: Check if C# files exist
+        id: check_csharp_files
+        run: |
+          if find . -name "*.cs" -print -quit | grep -q .; then
+            echo "csharp_files_exist=true" >> $GITHUB_ENV
+          else
+            echo "csharp_files_exist=false" >> $GITHUB_ENV
+          fi
+
+      - name: Setup .NET Core SDK for C#
+        if: env.csharp_files_exist == 'true'
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x' # Change this to match your project's SDK version
+
+      - name: Restore dependencies for C#
+        if: env.csharp_files_exist == 'true'
+        run: dotnet restore
+
+      - name: Analyze code with StyleCop for C#
+        if: env.csharp_files_exist == 'true'
+        run: dotnet tool run dotnet-stylecop analyze --report-file stylecop_csharp_results.txt
+
+      - name: Analyze code with Roslyn Analyzers for C#
+        if: env.csharp_files_exist == 'true'
+        run: dotnet build /p:ReportAnalyzer=true /p:AnalyzerReportOutputDirectory=roslyn_csharp_results
+
+      - name: Parse StyleCop output for C# and calculate score
+        if: env.csharp_files_exist == 'true'
+        run: |
+          stylecop_csharp_issues=0
+          if grep -q 'warning' stylecop_csharp_results.txt; then
+            stylecop_csharp_issues=$(grep -c 'warning' stylecop_csharp_results.txt)
+          fi
+          stylecop_csharp_score=$((100 - stylecop_csharp_issues * 10))
+          echo "StyleCop score for C#: $stylecop_csharp_score"
+          if [ $stylecop_csharp_score -lt 100 ]; then
+            echo "Code quality score for C#: FAIL"
+            exit 1
+          else
+            echo "Code quality score for C#: PASS"
+          fi
+
+      - name: Display StyleCop issues for C#
+        if: env.csharp_files_exist == 'true'
+        run: |
+          echo "StyleCop issues found for C#:"
+          cat stylecop_csharp_results.txt

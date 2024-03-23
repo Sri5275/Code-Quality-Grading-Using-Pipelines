@@ -66,55 +66,6 @@ jobs:
           echo "Flake8 issues found:"
           cat flake8_results.txt
 
-      - name: Check if .NET files exist
-        id: check_dotnet_files
-        run: |
-          if find . -name "*.csproj" -print -quit | grep -q .; then
-            echo "dotnet_files_exist=true" >> $GITHUB_ENV
-          else
-            echo "dotnet_files_exist=false" >> $GITHUB_ENV
-          fi
-
-      - name: Setup .NET Core SDK
-        if: env.dotnet_files_exist == 'true'
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x' # Change this to match your project's SDK version
-
-      - name: Restore dependencies for .NET
-        if: env.dotnet_files_exist == 'true'
-        run: dotnet restore
-
-      - name: Analyze code with StyleCop
-        if: env.dotnet_files_exist == 'true'
-        run: dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
-
-      - name: Analyze code with Roslyn Analyzers
-        if: env.dotnet_files_exist == 'true'
-        run: dotnet build /p:ReportAnalyzer=true /p:AnalyzerReportOutputDirectory=roslyn_results
-
-      - name: Parse StyleCop output and calculate score
-        if: env.dotnet_files_exist == 'true'
-        run: |
-          stylecop_issues=0
-          if grep -q 'warning' stylecop_results.txt; then
-            stylecop_issues=$(grep -c 'warning' stylecop_results.txt)
-          fi
-          stylecop_score=$((100 - stylecop_issues * 10))
-          echo "StyleCop score: $stylecop_score"
-          if [ $stylecop_score -lt 100 ]; then
-            echo "Code quality score: FAIL"
-            exit 1
-          else
-            echo "Code quality score: PASS"
-          fi
-
-      - name: Display StyleCop issues
-        if: env.dotnet_files_exist == 'true'
-        run: |
-          echo "StyleCop issues found:"
-          cat stylecop_results.txt
-
       - name: Check if C# files exist
         id: check_csharp_files
         run: |

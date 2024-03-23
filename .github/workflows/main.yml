@@ -84,7 +84,7 @@ jobs:
       - name: Restore dependencies for C#
         if: env.csharp_files_exist == 'true'
         run: |
-          if [ -f "." ]; then
+          if [ -f "*.cs" ]; then
             cd .
             dotnet restore .
           else

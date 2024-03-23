@@ -89,6 +89,10 @@ jobs:
       - name: Restore dependencies for .NET
         if: env.dotnet_files_exist == 'true'
         run: dotnet restore
+        
+      - name: Analyze code with StyleCop
+        if: env.dotnet_files_exist == 'true'
+        run: dotnet tool install -g StyleCop.Analyzers.Tool && dotnet tool run dotnet-stylecop analyze --report-file stylecop_results.txt
 
       - name: Analyze code with StyleCop
         if: env.dotnet_files_exist == 'true'

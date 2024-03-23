@@ -84,10 +84,10 @@ jobs:
       - name: Restore dependencies for C#
         if: env.csharp_files_exist == 'true'
         run: |
-          if ls *.cs >/dev/null 2>&1; then
+          if [ -f "*.csproj" ]; then
             dotnet restore .
           else
-            echo "C# files not found. Skipping dotnet restore."
+            echo "C# project file not found. Skipping dotnet restore."
           fi
 
       - name: Analyze code with StyleCop for C#

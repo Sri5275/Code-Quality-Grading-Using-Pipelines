@@ -95,7 +95,7 @@ jobs:
       - name: Check if .NET files exist
         id: check_dotnet_files
         run: |
-          if find . -name "*.csproj" -print -quit | grep -q .; then
+          if find . -name "WebAppService/*.csproj" -print -quit | grep -q .; then
             echo "dotnet_files_exist=true" >> $GITHUB_ENV
           else
             echo "dotnet_files_exist=false" >> $GITHUB_ENV

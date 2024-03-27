@@ -1,33 +1,28 @@
-name: Build and Test
+name: ASP.NET Core Web API CI
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: windows-latest
-    
+    runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
+      
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '6.0.x' # or the version you are using
-
-    - name: Restore NuGet packages
-      run: dotnet restore ${{ env.solution }}
-
-    - name: Build
-      run: dotnet build ${{ env.solution }} --configuration Release
-
-    - name: Publish
-      run: dotnet publish ${{ env.solution }} --configuration Release --output $(Build.ArtifactStagingDirectory)/WebAppService
-      env:
-        BUILD_ARTIFACTSTAGINGDIRECTORY: ${{ github.workspace }}
-
-    - name: Test
-      run: dotnet test ${{ env.solution }} --configuration Release
+        dotnet-version: 6.x
+        
+    - name: Build and Test
+      run: |
+        dotnet restore
+        dotnet build --configuration Release
+        dotnet test --configuration Release --no-restore

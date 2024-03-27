@@ -25,7 +25,7 @@ jobs:
       run: dotnet build ${{ env.solution }} --configuration Release
 
     - name: Publish
-      run: dotnet publish ${{ env.solution }} --configuration Release --output $(Build.ArtifactStagingDirectory)/WebApp
+      run: dotnet publish ${{ env.solution }} --configuration Release --output $(Build.ArtifactStagingDirectory)/WebAppService
       env:
         BUILD_ARTIFACTSTAGINGDIRECTORY: ${{ github.workspace }}
 

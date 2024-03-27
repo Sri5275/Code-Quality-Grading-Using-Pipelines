@@ -1,157 +1,28 @@
-name: Code Inspector
+name: .NET Core
 
-on:
-  pull_request:
-    branches:
-      - '*'
-  push:
-    branches:
-      - '*'
+on: [push]
 
 jobs:
-  code-inspection:
-    name: Code Inspection
+  build:
+
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.0.100
 
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-
-      - name: Check if Python files exist
-        id: check_python_files
-        run: |
-          if find . -name "*.py" -print -quit | grep -q .; then
-            echo "python_files_exist=true" >> $GITHUB_ENV
-          else
-            echo "python_files_exist=false" >> $GITHUB_ENV
-          fi
-
-      - name: Install dependencies for Python
-        if: env.python_files_exist == 'true'
-        run: |
-          pip install flake8
-          pip install pylint
-
-      - name: Run Flake8
-        if: env.python_files_exist == 'true'
-        id: flake8
-        run: |
-          flake8 . > flake8_results.txt || true
-
-      - name: Run Pylint
-        if: env.python_files_exist == 'true'
-        id: pylint
-        run: |
-          pylint . > pylint_results.txt || true
-
-      - name: Parse Flake8 output and calculate score
-        if: env.python_files_exist == 'true'
-        run: |
-          flake8_issues=0
-          if grep -q '^[^:]*:.*:' flake8_results.txt; then
-            flake8_issues=$(grep -c '^[^:]*:.*:' flake8_results.txt)
-          fi
-          flake8_score=$((100 - flake8_issues * 10))
-          echo "Flake8 score: $flake8_score"
-          if [ $flake8_score -lt 100 ]; then
-            echo "Code quality score: FAIL"
-            exit 1
-          else
-            echo "Code quality score: PASS"
-          fi
-
-      - name: Display Flake8 issues
-        if: env.python_files_exist == 'true'
-        run: |
-          echo "Flake8 issues found:"
-          cat flake8_results.txt
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v1
-        with:
-            dotnet-version: 8.0.x
-
-      - name: Clean
-        run: |
-          dotnet clean && dotnet nuget locals all --clear
-
-      - name: Restore dependencies
-        run: |
-          dotnet restore
-
-      - name: Build
-        run: |
-          dotnet build --no-restore
-
-      - name: Test
-        run: |
-          dotnet test --no-build --verbosity normal
-
-      - name: Check if .NET files exist
-        id: check_dotnet_files
-        run: |
-          if find . -name "WebAppService/*.csproj" -print -quit | grep -q .; then
-            echo "dotnet_files_exist=true" >> $GITHUB_ENV
-          else
-            echo "dotnet_files_exist=false" >> $GITHUB_ENV
-          fi
-
-      - name: Setup .NET Core SDK
-        if: env.dotnet_files_exist == 'true'
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '8.0.x' # Change this to match your project's SDK version
-
-      - name: Restore dependencies for .NET
-        if: env.dotnet_files_exist == 'true'
-        run: |
-         dotnet restore
-        
-      - name: Analyze code with Roslyn Analyzers
-        if: env.dotnet_files_exist == 'true'
-        run: |
-         dotnet build /p:ReportAnalyzer=true /p:AnalyzerReportOutputDirectory=roslyn_results
-
-      - name: Parse Roslyn Analyzers output and calculate score
-        if: env.dotnet_files_exist == 'true'
-        run: |
-             roslyn_results=$(cat roslyn_results/report.json)
-             # Count the number of issues reported
-            
-             total_issues=$(echo "$roslyn_results" | jq '. | length')
-             
-             # Calculate the score based on the number of issues
-             roslyn_score=$((100 - total_issues * 10))
-            
-              # Output the score
-              echo "Roslyn Analyzers score: $roslyn_score"
-          
-              # Check if the score is below 100 and fail the job if necessary
-              if [ $roslyn_score -lt 100 ]; then
-                echo "Code quality score: FAIL"
-                exit 1
-              else
-                echo "Code quality score: PASS"
-              fi
-
-
-      - name: Display Roslyn Analyzers issues
-        if: env.dotnet_files_exist == 'true'
-        run: |
-          roslyn_results=$(cat roslyn_results/report.json)
-          # Loop through each issue and display its details
-          echo "Roslyn Analyzers issues found:"
-          for issue in $(echo "$roslyn_results" | jq -r '.[]'); do
-            id=$(echo "$issue" | jq -r '.id')
-            severity=$(echo "$issue" | jq -r '.severity')
-            message=$(echo "$issue" | jq -r '.message')
-            file=$(echo "$issue" | jq -r '.file')
-            line=$(echo "$issue" | jq -r '.line')
-            column=$(echo "$issue" | jq -r '.column')
-            echo "ID: $id, Severity: $severity, Message: $message, File: $file, Line: $line, Column: $column"
-          done
+    # dotnet build and publish
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+    - name: dotnet publish
+      run: |
+        dotnet publish -c Release -o dotnetcorewebapp
+    - name: 'Run Azure webapp deploy action using publish profile credentials'
+      uses: azure/webapps-deploy@v1
+      with:
+        app-name: dotnetcorewebapp19 # Replace with your app name
+        publish-profile: $ # Define secret variable in repository settings as per action documentation
+        package: './dotnetcorewebapp'
